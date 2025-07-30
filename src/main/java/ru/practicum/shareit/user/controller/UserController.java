@@ -1,4 +1,4 @@
-package ru.practicum.shareit.user;
+package ru.practicum.shareit.user.controller;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.user.dto.CreateUserRequest;
 import ru.practicum.shareit.user.dto.UpdateUserRequest;
 import ru.practicum.shareit.user.dto.UserResponse;
+import ru.practicum.shareit.user.service.UserService;
 
 @Slf4j
 @RestController
@@ -18,7 +19,7 @@ import ru.practicum.shareit.user.dto.UserResponse;
 @Validated
 public class UserController {
 
-    UserService userService;
+    private final UserService userService;
 
     @PostMapping
     public UserResponse createUser(

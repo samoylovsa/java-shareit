@@ -1,4 +1,4 @@
-package ru.practicum.shareit.error;
+package ru.practicum.shareit.exception;
 
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
@@ -30,6 +30,20 @@ public class ErrorHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handleConstraintViolation(ConstraintViolationException e) {
         log.warn("Validation error: ", e);
+        return new ErrorResponse(e.getMessage());
+    }
+
+    @ExceptionHandler(AlreadyExistsException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ErrorResponse handleAlreadyExistsException(AlreadyExistsException e) {
+        log.warn("Entity already exists: ", e);
+        return new ErrorResponse(e.getMessage());
+    }
+
+    @ExceptionHandler(NotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ErrorResponse handleNotFoundException(NotFoundException e) {
+        log.warn("Entity not found: ", e);
         return new ErrorResponse(e.getMessage());
     }
 }
