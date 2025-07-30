@@ -7,10 +7,10 @@ import ru.practicum.shareit.user.User;
 @Data
 @Builder
 public class Item {
-    Integer id;
-    String name;
-    String description;
-    Boolean available;
-    User owner;
-    Integer requestId;
+    private Integer id;
+    private String name;
+    private String description;
+    private Boolean available;
+    private User owner;
+    private Integer requestId;
 }
