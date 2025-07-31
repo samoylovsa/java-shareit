@@ -50,7 +50,7 @@ public class ItemController {
             @NotNull @Positive @RequestHeader(USER_ID_HEADER) Integer userId,
             @NotNull @Positive @PathVariable Integer itemId) {
         log.info("Received get request for item ID: {} by user ID: {}", itemId, userId);
-        ItemResponse response = itemService.getItemById(itemId, userId);
+        ItemResponse response = itemService.getItemById(itemId);
         log.debug("Returning item data: {}", response);
         return response;
     }

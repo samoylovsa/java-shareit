@@ -54,4 +54,11 @@ public class ErrorHandler {
         log.warn("Entity not found: ", e);
         return new ErrorResponse(e.getMessage());
     }
+
+    @ExceptionHandler(NoAccessException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public ErrorResponse handleNoAccessException(NoAccessException e) {
+        log.warn("No access exception: ", e);
+        return new ErrorResponse(e.getMessage());
+    }
 }

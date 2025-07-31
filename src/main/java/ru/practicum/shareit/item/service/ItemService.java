@@ -12,7 +12,7 @@ public interface ItemService {
 
     ItemResponse updateItem(Integer ownerId, Integer itemId, UpdateItemRequest request);
 
-    ItemResponse getItemById(Integer itemId, Integer userId);
+    ItemResponse getItemById(Integer itemId);
 
     List<ItemResponse> getAllItemsByOwner(Integer ownerId);
 

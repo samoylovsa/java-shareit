@@ -29,19 +29,10 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserResponse updateUser(Integer userId, UpdateUserRequest request) {
         User existingUser = findUser(userId);
-
         if (request.getEmail() != null && !request.getEmail().equals(existingUser.getEmail())) {
             validateEmailAlreadyExists(request.getEmail());
         }
-
-        if (request.getName() != null) {
-            existingUser.setName(request.getName());
-        }
-        if (request.getEmail() != null) {
-            existingUser.setEmail(request.getEmail());
-        }
-
-        User savedUser = userRepository.updateUser(existingUser);
+        User savedUser = updateRequiredUserFields(existingUser, request);
 
         return UserMapper.mapToUserResponse(savedUser);
     }
@@ -66,5 +57,16 @@ public class UserServiceImpl implements UserService {
     private User findUser(Integer userId) {
         return userRepository.findUser(userId)
                 .orElseThrow(() -> new NotFoundException("User not found with ID: " + userId));
+    }
+
+    private User updateRequiredUserFields(User existingUser, UpdateUserRequest request) {
+        if (request.getName() != null) {
+            existingUser.setName(request.getName());
+        }
+        if (request.getEmail() != null) {
+            existingUser.setEmail(request.getEmail());
+        }
+
+        return userRepository.updateUser(existingUser);
     }
 }
