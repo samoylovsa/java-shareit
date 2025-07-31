@@ -13,10 +13,10 @@ import ru.practicum.shareit.user.dto.UserResponse;
 import ru.practicum.shareit.user.service.UserService;
 
 @Slf4j
+@Validated
 @RestController
 @RequestMapping(path = "/users")
 @RequiredArgsConstructor
-@Validated
 public class UserController {
 
     private final UserService userService;
