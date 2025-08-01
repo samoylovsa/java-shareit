@@ -43,4 +43,11 @@ public class InMemoryItemRepository implements ItemRepository {
                 .filter(item -> ownerId.equals(item.getOwnerId()))
                 .collect(Collectors.toList());
     }
+
+    @Override
+    public List<Item> findAllAvailableItems() {
+        return items.values().stream()
+                .filter(Item::getAvailable)
+                .collect(Collectors.toList());
+    }
 }

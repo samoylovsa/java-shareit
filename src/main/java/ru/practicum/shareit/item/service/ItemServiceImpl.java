@@ -14,6 +14,7 @@ import ru.practicum.shareit.user.repository.UserRepository;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -56,7 +57,17 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public List<ItemResponse> searchItems(String text) {
-        return List.of();
+        List<Item> availableItems = itemRepository.findAllAvailableItems();
+        if (availableItems.isEmpty()) {
+            return List.of();
+        }
+
+        String searchText = text.toLowerCase().trim();
+
+        return availableItems.stream()
+                .filter(item -> (item.getName().toLowerCase().contains(searchText)) || (item.getDescription().toLowerCase().contains(searchText)))
+                .map(ItemMapper::mapToItemResponse)
+                .collect(Collectors.toList());
     }
 
     private void validateUserExists(Integer ownerId) {

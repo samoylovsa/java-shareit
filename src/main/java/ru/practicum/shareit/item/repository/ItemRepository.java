@@ -14,4 +14,6 @@ public interface ItemRepository {
     Item updateItem(Item item);
 
     List<Item> findItemsByOwner(Integer ownerId);
+
+    List<Item> findAllAvailableItems();
 }

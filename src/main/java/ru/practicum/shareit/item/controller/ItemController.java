@@ -67,7 +67,7 @@ public class ItemController {
     @GetMapping("/search")
     public List<ItemResponse> searchAvailableItems(@RequestParam String text) {
         log.info("Received search request with text: {}", text);
-        if (text.isBlank()) {
+        if (text == null || text.isBlank()) {
             log.debug("Search text is blank. Returning response with empty list");
             return List.of();
         }
