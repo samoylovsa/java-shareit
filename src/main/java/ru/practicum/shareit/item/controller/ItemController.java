@@ -38,7 +38,7 @@ public class ItemController {
     public ItemResponse updateItem(
             @NotNull @Positive @RequestHeader(USER_ID_HEADER) Integer ownerId,
             @NotNull @Positive @PathVariable Integer itemId,
-            @Valid @RequestBody UpdateItemRequest request) {
+            @RequestBody UpdateItemRequest request) {
         log.info("Received update item ID: {} request: {} by owner ID: {}", itemId, request, ownerId);
         ItemResponse response = itemService.updateItem(ownerId, itemId, request);
         log.debug("Returning update item response: {}", response);

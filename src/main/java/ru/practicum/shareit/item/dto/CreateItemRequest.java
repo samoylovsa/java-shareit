@@ -8,12 +8,10 @@ import lombok.Data;
 @Data
 @Builder
 public class CreateItemRequest {
-    @NotNull
-    @NotBlank
+    @NotBlank(message = "Name must not be empty")
     private String name;
-    @NotNull
-    @NotBlank
+    @NotBlank(message = "Description must not be empty")
     private String description;
-    @NotNull
+    @NotNull(message = "Available must not be null")
     private Boolean available;
 }
