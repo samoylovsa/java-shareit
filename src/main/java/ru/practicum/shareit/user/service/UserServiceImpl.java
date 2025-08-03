@@ -45,6 +45,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void deleteUser(Integer userId) {
+        findUser(userId);
         userRepository.deleteUser(userId);
     }
 
@@ -60,10 +61,10 @@ public class UserServiceImpl implements UserService {
     }
 
     private User updateRequiredUserFields(User existingUser, UpdateUserRequest request) {
-        if (request.getName() != null) {
+        if (request.getName() != null && !request.getName().isBlank()) {
             existingUser.setName(request.getName());
         }
-        if (request.getEmail() != null) {
+        if (request.getEmail() != null && !request.getEmail().isBlank()) {
             existingUser.setEmail(request.getEmail());
         }
 
