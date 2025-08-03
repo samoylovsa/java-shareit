@@ -19,9 +19,10 @@ public class InMemoryItemRepository implements ItemRepository {
 
     @Override
     public Item createItem(Item item) {
-        if (item.getId() == null) {
-            item.setId(++id);
+        if (item.getId() != null) {
+            throw new IllegalArgumentException("New item must not have ID");
         }
+        item.setId(++id);
         items.put(item.getId(), item);
         return items.get(item.getId());
     }

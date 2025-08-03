@@ -61,4 +61,11 @@ public class ErrorHandler {
         log.warn("No access exception: ", e);
         return new ErrorResponse(e.getMessage());
     }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleIllegalArgumentException(IllegalArgumentException e) {
+        log.warn("Illegal Argument exception: ", e);
+        return new ErrorResponse(e.getMessage());
+    }
 }

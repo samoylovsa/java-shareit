@@ -17,9 +17,10 @@ public class InMemoryUserRepository implements UserRepository {
 
     @Override
     public User createUser(User user) {
-        if (user.getId() == null) {
-            user.setId(++id);
+        if (user.getId() != null) {
+            throw new IllegalArgumentException("New user must not have ID");
         }
+        user.setId(++id);
         users.put(user.getId(), user);
         return users.get(user.getId());
     }
