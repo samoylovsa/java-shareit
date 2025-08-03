@@ -15,5 +15,5 @@ public interface ItemRepository {
 
     List<Item> findItemsByOwner(Integer ownerId);
 
-    List<Item> findAllAvailableItems();
+    List<Item> searchAvailableItems(String text);
 }

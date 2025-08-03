@@ -12,7 +12,6 @@ import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.user.repository.UserRepository;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -49,23 +48,15 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public List<ItemResponse> getAllItemsByOwner(Integer ownerId) {
         validateUserExists(ownerId);
-        List<Item> items = itemRepository.findItemsByOwner(ownerId);
-        List<ItemResponse> response = new ArrayList<>();
-        items.forEach(item -> response.add(ItemMapper.mapToItemResponse(item)));
-        return response;
+        return itemRepository.findItemsByOwner(ownerId)
+                .stream()
+                .map(ItemMapper::mapToItemResponse)
+                .collect(Collectors.toList());
     }
 
     @Override
     public List<ItemResponse> searchItems(String text) {
-        List<Item> availableItems = itemRepository.findAllAvailableItems();
-        if (availableItems.isEmpty()) {
-            return List.of();
-        }
-
-        String searchText = text.toLowerCase().trim();
-
-        return availableItems.stream()
-                .filter(item -> (item.getName().toLowerCase().contains(searchText)) || (item.getDescription().toLowerCase().contains(searchText)))
+        return itemRepository.searchAvailableItems(text).stream()
                 .map(ItemMapper::mapToItemResponse)
                 .collect(Collectors.toList());
     }
@@ -87,10 +78,10 @@ public class ItemServiceImpl implements ItemService {
     }
 
     private Item updateRequiredItemFields(Item existingItem, UpdateItemRequest request) {
-        if (request.getName() != null) {
+        if (request.getName() != null && !request.getName().isBlank()) {
             existingItem.setName(request.getName());
         }
-        if (request.getDescription() != null) {
+        if (request.getDescription() != null && !request.getDescription().isBlank()) {
             existingItem.setDescription(request.getDescription());
         }
         if (request.getAvailable() != null) {

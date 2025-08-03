@@ -46,9 +46,14 @@ public class InMemoryItemRepository implements ItemRepository {
     }
 
     @Override
-    public List<Item> findAllAvailableItems() {
+    public List<Item> searchAvailableItems(String text) {
+        String searchText = text.toLowerCase().trim();
         return items.values().stream()
                 .filter(Item::getAvailable)
+                .filter(item ->
+                        (item.getName().toLowerCase().contains(searchText)) ||
+                                (item.getDescription().toLowerCase().contains(searchText))
+                )
                 .collect(Collectors.toList());
     }
 }
