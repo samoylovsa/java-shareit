@@ -10,6 +10,7 @@ import ru.practicum.shareit.item.dto.UpdateItemRequest;
 import ru.practicum.shareit.item.mapper.ItemMapper;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.ItemRepository;
+import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
 import java.util.List;
@@ -24,17 +25,17 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public ItemResponse createItem(Integer ownerId, CreateItemRequest request) {
-        validateUserExists(ownerId);
-        Item item = ItemMapper.mapToItem(ownerId, request);
-        item = itemRepository.createItem(item);
+        User owner = findUser(ownerId);
+        Item item = ItemMapper.mapToItem(owner, request);
+        item = itemRepository.save(item);
         return ItemMapper.mapToItemResponse(item);
     }
 
     @Override
     public ItemResponse updateItem(Integer ownerId, Integer itemId, UpdateItemRequest request) {
-        validateUserExists(ownerId);
+        User owner = findUser(ownerId);
         Item existingItem = findItem(itemId);
-        validateUserIsOwner(ownerId, existingItem.getOwnerId());
+        validateUserIsOwner(owner.getId(), existingItem.getOwner().getId());
         Item updatedItem = updateRequiredItemFields(existingItem, request);
         return ItemMapper.mapToItemResponse(updatedItem);
     }
@@ -47,8 +48,8 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public List<ItemResponse> getAllItemsByOwner(Integer ownerId) {
-        validateUserExists(ownerId);
-        return itemRepository.findItemsByOwner(ownerId)
+        User owner = findUser(ownerId);
+        return itemRepository.findByOwnerId(owner.getId())
                 .stream()
                 .map(ItemMapper::mapToItemResponse)
                 .collect(Collectors.toList());
@@ -61,13 +62,13 @@ public class ItemServiceImpl implements ItemService {
                 .collect(Collectors.toList());
     }
 
-    private void validateUserExists(Integer ownerId) {
-        userRepository.findUser(ownerId)
+    private User findUser(Integer ownerId) {
+        return userRepository.findById(ownerId)
                 .orElseThrow(() -> new NotFoundException("User not found with ID: " + ownerId));
     }
 
     private Item findItem(Integer itemId) {
-        return itemRepository.findItem(itemId)
+        return itemRepository.findById(itemId)
                 .orElseThrow(() -> new NotFoundException("Item not found with ID: " + itemId));
     }
 
@@ -88,6 +89,6 @@ public class ItemServiceImpl implements ItemService {
             existingItem.setAvailable(request.getAvailable());
         }
 
-        return itemRepository.updateItem(existingItem);
+        return itemRepository.save(existingItem);
     }
 }

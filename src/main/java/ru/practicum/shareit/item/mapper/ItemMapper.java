@@ -5,16 +5,17 @@ import lombok.NoArgsConstructor;
 import ru.practicum.shareit.item.dto.CreateItemRequest;
 import ru.practicum.shareit.item.dto.ItemResponse;
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.user.model.User;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class ItemMapper {
 
-    public static Item mapToItem(Integer ownerId, CreateItemRequest request) {
+    public static Item mapToItem(User owner, CreateItemRequest request) {
         return Item.builder()
                 .name(request.getName())
                 .description(request.getDescription())
                 .available(request.getAvailable())
-                .ownerId(ownerId)
+                .owner(owner)
                 .build();
     }
 
