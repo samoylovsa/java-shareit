@@ -2,8 +2,9 @@ package ru.practicum.shareit.booking.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.shareit.booking.dto.BookingResponse;
 import ru.practicum.shareit.booking.dto.CreateBookingRequest;
-import ru.practicum.shareit.booking.dto.CreateBookingResponse;
 import ru.practicum.shareit.booking.mapper.BookingMapper;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.BookingStatus;
@@ -16,6 +17,7 @@ import ru.practicum.shareit.user.repository.UserRepository;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class BookingServiceImpl implements BookingService {
 
     private final BookingRepository bookingRepository;
@@ -23,9 +25,11 @@ public class BookingServiceImpl implements BookingService {
     private final ItemRepository itemRepository;
 
     @Override
-    public CreateBookingResponse createBooking(Integer bookerId, CreateBookingRequest request) {
-        User booker = validateBookerExists(bookerId);
+    @Transactional
+    public BookingResponse createBooking(Integer bookerId, CreateBookingRequest request) {
+        User booker = validateUserExists(bookerId);
         Item item = validateItemExists(request.getItemId());
+
         validateBookerIsNotOwner(booker.getId(), item.getOwner().getId());
         validateItemIsAvailable(item);
 
@@ -33,13 +37,28 @@ public class BookingServiceImpl implements BookingService {
         booking.setStatus(BookingStatus.WAITING);
         booking = bookingRepository.save(booking);
 
-        return BookingMapper.mapToCreateBookingResponse(booking);
+        return BookingMapper.mapToBookingResponse(booking);
     }
 
-    private User validateBookerExists(Integer bookerId) {
-        return userRepository.findById(bookerId)
-                .orElseThrow(() -> new NotFoundException(
-                        String.format("User with id %d not found", bookerId)
+    @Override
+    @Transactional
+    public BookingResponse approveBooking(Integer ownerId, Integer bookingId, Boolean isApproved) {
+        User user = validateUserExists(ownerId);
+        Booking booking = validateBookingExists(bookingId);
+
+        validateUserIsOwner(user, booking);
+        validateBookingStatusIsWaiting(booking);
+
+        processApprove(booking, isApproved);
+        booking = bookingRepository.save(booking);
+
+        return BookingMapper.mapToBookingResponse(booking);
+    }
+
+    private User validateUserExists(Integer userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        String.format("User with id %d not found", userId)
                 ));
     }
 
@@ -63,6 +82,41 @@ public class BookingServiceImpl implements BookingService {
             throw new IllegalArgumentException(
                     String.format("Item '%s' is not available for booking", item.getName())
             );
+        }
+    }
+
+    private Booking validateBookingExists(Integer bookingId) {
+        return bookingRepository.findWithItemAndOwnerById(bookingId)
+                .orElseThrow(() -> new NotFoundException(
+                        String.format("Booking with id %d not found", bookingId)
+                ));
+    }
+
+    private void validateUserIsOwner(User user, Booking booking) {
+        Integer userId = user.getId();
+        Integer ownerId = booking.getItem().getOwner().getId();
+        if (!userId.equals(ownerId)) {
+            throw new IllegalArgumentException(
+                    "User must be the owner of the item"
+            );
+        }
+    }
+
+    private void validateBookingStatusIsWaiting(Booking booking) {
+        if (!booking.getStatus().equals(BookingStatus.WAITING)) {
+            throw new IllegalArgumentException(
+                    "Booking status must be WAITING for owner approve"
+            );
+        }
+    }
+
+    private Booking processApprove(Booking booking, Boolean isApproved) {
+        if (isApproved) {
+            booking.setStatus(BookingStatus.APPROVED);
+            return booking;
+        } else {
+            booking.setStatus(BookingStatus.REJECTED);
+            return booking;
         }
     }
 }

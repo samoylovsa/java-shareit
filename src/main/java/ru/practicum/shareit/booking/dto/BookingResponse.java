@@ -10,7 +10,8 @@ import java.time.LocalDateTime;
 
 @Data
 @Builder
-public class CreateBookingResponse {
+public class BookingResponse {
+    private Integer id;
     private LocalDateTime start;
     private LocalDateTime end;
     private BookingStatus status;
