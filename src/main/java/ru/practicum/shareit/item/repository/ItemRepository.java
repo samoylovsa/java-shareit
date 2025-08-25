@@ -18,4 +18,5 @@ public interface ItemRepository extends JpaRepository<Item, Integer> {
             "LOWER(i.description) LIKE LOWER(CONCAT('%', :text, '%')))")
     List<Item> searchAvailableItems(@Param("text") String text);
 
+    long countByOwnerId(Integer ownerId);
 }
