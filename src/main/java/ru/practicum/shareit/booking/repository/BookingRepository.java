@@ -113,4 +113,36 @@ public interface BookingRepository extends JpaRepository<Booking, Integer> {
             "ORDER BY b.start DESC")
     List<Booking> findByItemOwnerIdAndStatusWithRelations(@Param("ownerId") Integer ownerId,
                                                           @Param("status") BookingStatus status);
+
+    @Query("SELECT b FROM Booking b " +
+            "WHERE b.item.id IN :itemIds " +
+            "AND b.end < :now " +
+            "AND b.end = (SELECT MAX(b2.end) FROM Booking b2 WHERE b2.item.id = b.item.id AND b2.end < :now)")
+    List<Booking> findLastBookingsForItems(@Param("itemIds") List<Integer> itemIds,
+                                           @Param("now") LocalDateTime now);
+
+    @Query("SELECT b FROM Booking b " +
+            "WHERE b.item.id IN :itemIds " +
+            "AND b.start > :now " +
+            "AND b.start = (SELECT MIN(b2.start) FROM Booking b2 WHERE b2.item.id = b.item.id AND b2.start > :now)")
+    List<Booking> findNextBookingsForItems(@Param("itemIds") List<Integer> itemIds,
+                                           @Param("now") LocalDateTime now);
+
+    @Query("SELECT b FROM Booking b " +
+            "LEFT JOIN FETCH b.booker " +
+            "WHERE b.item.id = :itemId " +
+            "AND b.end < :now " +
+            "ORDER BY b.end DESC " +
+            "LIMIT 1")
+    Booking findLastBookingForItemWithBooker(@Param("itemId") Integer itemId,
+                                             @Param("now") LocalDateTime now);
+
+    @Query("SELECT b FROM Booking b " +
+            "LEFT JOIN FETCH b.booker " +
+            "WHERE b.item.id = :itemId " +
+            "AND b.start > :now " +
+            "ORDER BY b.start ASC " +
+            "LIMIT 1")
+    Booking findNextBookingForItemWithBooker(@Param("itemId") Integer itemId,
+                                             @Param("now") LocalDateTime now);
 }

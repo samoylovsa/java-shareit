@@ -2,9 +2,13 @@ package ru.practicum.shareit.item.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.shareit.booking.model.Booking;
+import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.exception.NoAccessException;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.item.dto.CreateItemRequest;
+import ru.practicum.shareit.item.dto.GetItemResponse;
 import ru.practicum.shareit.item.dto.ItemResponse;
 import ru.practicum.shareit.item.dto.UpdateItemRequest;
 import ru.practicum.shareit.item.mapper.ItemMapper;
@@ -13,17 +17,24 @@ import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
+import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class ItemServiceImpl implements ItemService {
 
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
+    private final BookingRepository bookingRepository;
 
     @Override
+    @Transactional
     public ItemResponse createItem(Integer ownerId, CreateItemRequest request) {
         User owner = findUser(ownerId);
         Item item = ItemMapper.mapToItem(owner, request);
@@ -32,6 +43,7 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
+    @Transactional
     public ItemResponse updateItem(Integer ownerId, Integer itemId, UpdateItemRequest request) {
         User owner = findUser(ownerId);
         Item existingItem = findItem(itemId);
@@ -41,18 +53,56 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public ItemResponse getItemById(Integer itemId) {
-        Item item = findItem(itemId);
-        return ItemMapper.mapToItemResponse(item);
+    public GetItemResponse getItemById(Integer itemId, Integer userId) {
+        Item item = findItemWithOwner(itemId);
+
+        if (item.getOwner().getId().equals(userId)) {
+            LocalDateTime now = LocalDateTime.now();
+            Booking lastBooking = bookingRepository.findLastBookingForItemWithBooker(itemId, now);
+            Booking nextBooking = bookingRepository.findNextBookingForItemWithBooker(itemId, now);
+
+            return ItemMapper.mapToGetItemResponse(item, lastBooking, nextBooking);
+        } else {
+            return ItemMapper.mapToGetItemResponse(item, null, null);
+        }
     }
 
     @Override
-    public List<ItemResponse> getAllItemsByOwner(Integer ownerId) {
+    public List<GetItemResponse> getAllItemsByOwner(Integer ownerId) {
         User owner = findUser(ownerId);
-        return itemRepository.findByOwnerId(owner.getId())
-                .stream()
-                .map(ItemMapper::mapToItemResponse)
-                .collect(Collectors.toList());
+        List<Item> items = itemRepository.findByOwnerId(owner.getId());
+
+        if (items.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        Map<Integer, Booking> lastBookingsMap;
+        Map<Integer, Booking> nextBookingsMap;
+
+        if (items.getFirst().getOwner().getId().equals(ownerId)) {
+            LocalDateTime now = LocalDateTime.now();
+            List<Integer> itemIds = items.stream()
+                    .map(Item::getId)
+                    .collect(Collectors.toList());
+
+            lastBookingsMap = bookingRepository.findLastBookingsForItems(itemIds, now)
+                    .stream()
+                    .collect(Collectors.toMap(b -> b.getItem().getId(), Function.identity()));
+
+            nextBookingsMap = bookingRepository.findNextBookingsForItems(itemIds, now)
+                    .stream()
+                    .collect(Collectors.toMap(b -> b.getItem().getId(), Function.identity()));
+        } else {
+            nextBookingsMap = Collections.emptyMap();
+            lastBookingsMap = Collections.emptyMap();
+        }
+
+        return items.stream()
+                .map(item -> ItemMapper.mapToGetItemResponse(
+                        item,
+                        lastBookingsMap.get(item.getId()),
+                        nextBookingsMap.get(item.getId())
+                )).collect(Collectors.toList());
     }
 
     @Override
@@ -90,5 +140,10 @@ public class ItemServiceImpl implements ItemService {
         }
 
         return itemRepository.save(existingItem);
+    }
+
+    private Item findItemWithOwner(Integer itemId) {
+        return itemRepository.findByIdWithOwner(itemId)
+                .orElseThrow(() -> new NotFoundException("Item not found"));
     }
 }
