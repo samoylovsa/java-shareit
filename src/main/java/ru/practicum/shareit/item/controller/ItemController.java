@@ -7,10 +7,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.shareit.item.dto.CreateItemRequest;
-import ru.practicum.shareit.item.dto.GetItemResponse;
-import ru.practicum.shareit.item.dto.ItemResponse;
-import ru.practicum.shareit.item.dto.UpdateItemRequest;
+import ru.practicum.shareit.item.dto.*;
 import ru.practicum.shareit.item.service.ItemService;
 
 import java.util.List;
@@ -74,6 +71,17 @@ public class ItemController {
         }
         List<ItemResponse> response = itemService.searchItems(text);
         log.debug("Returning search result response: {}", response);
+        return response;
+    }
+
+    @PostMapping("/{itemId}/comment")
+    public CommentResponse addComment(
+            @NotNull @Positive @RequestHeader(USER_ID_HEADER) Integer userId,
+            @NotNull @Positive @PathVariable Integer itemId,
+            @Valid @RequestBody CreateCommentRequest request) {
+        log.info("Received add comment request for item ID: {} by user ID: {}", itemId, userId);
+        CommentResponse response = itemService.addComment(itemId, userId, request);
+        log.debug("Returning comment response: {}", response);
         return response;
     }
 }

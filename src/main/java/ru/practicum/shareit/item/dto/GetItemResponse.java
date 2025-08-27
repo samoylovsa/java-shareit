@@ -3,6 +3,8 @@ package ru.practicum.shareit.item.dto;
 import lombok.Builder;
 import lombok.Data;
 
+import java.util.List;
+
 @Data
 @Builder
 public class GetItemResponse {
@@ -12,4 +14,5 @@ public class GetItemResponse {
     private Boolean available;
     private BookingInfoResponse lastBooking;
     private BookingInfoResponse nextBooking;
+    private List<CommentResponse> comments;
 }

@@ -3,12 +3,12 @@ package ru.practicum.shareit.item.mapper;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import ru.practicum.shareit.booking.model.Booking;
-import ru.practicum.shareit.item.dto.BookingInfoResponse;
-import ru.practicum.shareit.item.dto.CreateItemRequest;
-import ru.practicum.shareit.item.dto.GetItemResponse;
-import ru.practicum.shareit.item.dto.ItemResponse;
+import ru.practicum.shareit.item.dto.*;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.model.User;
+
+import java.util.Collections;
+import java.util.List;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class ItemMapper {
@@ -31,12 +31,14 @@ public final class ItemMapper {
                 .build();
     }
 
-    public static GetItemResponse mapToGetItemResponse(Item item, Booking lastBooking, Booking nextBooking) {
+    public static GetItemResponse mapToGetItemResponse(Item item, Booking lastBooking,
+                                                       Booking nextBooking, List<CommentResponse> comments) {
         GetItemResponse.GetItemResponseBuilder builder = GetItemResponse.builder()
                 .id(item.getId())
                 .name(item.getName())
                 .description(item.getDescription())
-                .available(item.getAvailable());
+                .available(item.getAvailable())
+                .comments(comments != null ? comments : Collections.emptyList());
 
         if (lastBooking != null) {
             builder.lastBooking(mapToBookingInfo(lastBooking));

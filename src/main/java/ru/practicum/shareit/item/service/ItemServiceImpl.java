@@ -4,15 +4,16 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.model.Booking;
+import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.exception.NoAccessException;
 import ru.practicum.shareit.exception.NotFoundException;
-import ru.practicum.shareit.item.dto.CreateItemRequest;
-import ru.practicum.shareit.item.dto.GetItemResponse;
-import ru.practicum.shareit.item.dto.ItemResponse;
-import ru.practicum.shareit.item.dto.UpdateItemRequest;
+import ru.practicum.shareit.item.dto.*;
+import ru.practicum.shareit.item.mapper.CommentMapper;
 import ru.practicum.shareit.item.mapper.ItemMapper;
+import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.item.repository.CommentRepository;
 import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
@@ -32,6 +33,7 @@ public class ItemServiceImpl implements ItemService {
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
     private final BookingRepository bookingRepository;
+    private final CommentRepository commentRepository;
 
     @Override
     @Transactional
@@ -55,19 +57,23 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public GetItemResponse getItemById(Integer itemId, Integer userId) {
         Item item = findItemWithOwner(itemId);
-
+        List<Comment> comments = commentRepository.findByItemId(itemId);
+        List<CommentResponse> commentResponses = comments.stream()
+                .map(CommentMapper::mapToCommentResponse)
+                .toList();
         if (item.getOwner().getId().equals(userId)) {
             LocalDateTime now = LocalDateTime.now();
             Booking lastBooking = bookingRepository.findLastBookingForItemWithBooker(itemId, now);
             Booking nextBooking = bookingRepository.findNextBookingForItemWithBooker(itemId, now);
 
-            return ItemMapper.mapToGetItemResponse(item, lastBooking, nextBooking);
+            return ItemMapper.mapToGetItemResponse(item, lastBooking, nextBooking, commentResponses);
         } else {
-            return ItemMapper.mapToGetItemResponse(item, null, null);
+            return ItemMapper.mapToGetItemResponse(item, null, null, commentResponses);
         }
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<GetItemResponse> getAllItemsByOwner(Integer ownerId) {
         User owner = findUser(ownerId);
         List<Item> items = itemRepository.findByOwnerId(owner.getId());
@@ -76,14 +82,22 @@ public class ItemServiceImpl implements ItemService {
             return Collections.emptyList();
         }
 
+        List<Integer> itemIds = items.stream()
+                .map(Item::getId)
+                .collect(Collectors.toList());
+
+        Map<Integer, List<CommentResponse>> commentsByItem = commentRepository.findByItemIdIn(itemIds)
+                .stream()
+                .collect(Collectors.groupingBy(
+                        comment -> comment.getItem().getId(),
+                        Collectors.mapping(CommentMapper::mapToCommentResponse, Collectors.toList())
+                ));
+
         Map<Integer, Booking> lastBookingsMap;
         Map<Integer, Booking> nextBookingsMap;
 
-        if (items.getFirst().getOwner().getId().equals(ownerId)) {
+        if (items.get(0).getOwner().getId().equals(ownerId)) {
             LocalDateTime now = LocalDateTime.now();
-            List<Integer> itemIds = items.stream()
-                    .map(Item::getId)
-                    .collect(Collectors.toList());
 
             lastBookingsMap = bookingRepository.findLastBookingsForItems(itemIds, now)
                     .stream()
@@ -93,16 +107,24 @@ public class ItemServiceImpl implements ItemService {
                     .stream()
                     .collect(Collectors.toMap(b -> b.getItem().getId(), Function.identity()));
         } else {
-            nextBookingsMap = Collections.emptyMap();
             lastBookingsMap = Collections.emptyMap();
+            nextBookingsMap = Collections.emptyMap();
         }
 
         return items.stream()
-                .map(item -> ItemMapper.mapToGetItemResponse(
-                        item,
-                        lastBookingsMap.get(item.getId()),
-                        nextBookingsMap.get(item.getId())
-                )).collect(Collectors.toList());
+                .map(item -> {
+                    List<CommentResponse> itemComments = commentsByItem.getOrDefault(item.getId(), Collections.emptyList());
+                    Booking lastBooking = lastBookingsMap.get(item.getId());
+                    Booking nextBooking = nextBookingsMap.get(item.getId());
+
+                    return ItemMapper.mapToGetItemResponse(
+                            item,
+                            lastBooking,
+                            nextBooking,
+                            itemComments
+                    );
+                })
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -110,6 +132,29 @@ public class ItemServiceImpl implements ItemService {
         return itemRepository.searchAvailableItems(text).stream()
                 .map(ItemMapper::mapToItemResponse)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional
+    public CommentResponse addComment(Integer itemId, Integer userId, CreateCommentRequest request) {
+        User author = findUser(userId);
+        Item item = findItem(itemId);
+
+        validateUserRentedItem(userId, itemId);
+
+        Comment comment = CommentMapper.mapToComment(request, item, author);
+        comment = commentRepository.save(comment);
+
+        return CommentMapper.mapToCommentResponse(comment);
+    }
+
+    private void validateUserRentedItem(Integer userId, Integer itemId) {
+        LocalDateTime now = LocalDateTime.now();
+        boolean hasRented = commentRepository.existsApprovedBookingForUserAndItem(itemId, userId, now, BookingStatus.APPROVED);
+
+        if (!hasRented) {
+            throw new IllegalArgumentException("User must have rented the item to leave a comment");
+        }
     }
 
     private User findUser(Integer ownerId) {
