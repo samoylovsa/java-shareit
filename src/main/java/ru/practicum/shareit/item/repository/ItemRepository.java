@@ -22,5 +22,5 @@ public interface ItemRepository extends JpaRepository<Item, Integer> {
     long countByOwnerId(Integer ownerId);
 
     @Query("SELECT i FROM Item i LEFT JOIN FETCH i.owner WHERE i.id = :itemId")
-    Optional<Item> findByIdWithOwner(@Param("itemId") Integer itemId);;
+    Optional<Item> findByIdWithOwner(@Param("itemId") Integer itemId);
 }
