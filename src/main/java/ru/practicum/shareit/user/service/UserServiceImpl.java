@@ -21,7 +21,7 @@ public class UserServiceImpl implements UserService {
     public UserResponse createUser(CreateUserRequest request) {
         validateEmailAlreadyExists(request.getEmail());
         User user = UserMapper.mapToUser(request);
-        user = userRepository.createUser(user);
+        user = userRepository.save(user);
 
         return UserMapper.mapToUserResponse(user);
     }
@@ -46,17 +46,17 @@ public class UserServiceImpl implements UserService {
     @Override
     public void deleteUser(Integer userId) {
         findUser(userId);
-        userRepository.deleteUser(userId);
+        userRepository.deleteById(userId);
     }
 
     private void validateEmailAlreadyExists(String email) {
-        if (userRepository.isExistsByEmail(email)) {
+        if (userRepository.existsByEmail(email)) {
             throw new AlreadyExistsException("The email provided is already in use.");
         }
     }
 
     private User findUser(Integer userId) {
-        return userRepository.findUser(userId)
+        return userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User not found with ID: " + userId));
     }
 
@@ -68,6 +68,6 @@ public class UserServiceImpl implements UserService {
             existingUser.setEmail(request.getEmail());
         }
 
-        return userRepository.updateUser(existingUser);
+        return userRepository.save(existingUser);
     }
 }
