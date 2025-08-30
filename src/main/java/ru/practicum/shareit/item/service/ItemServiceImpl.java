@@ -93,23 +93,13 @@ public class ItemServiceImpl implements ItemService {
                         Collectors.mapping(CommentMapper::mapToCommentResponse, Collectors.toList())
                 ));
 
-        Map<Integer, Booking> lastBookingsMap;
-        Map<Integer, Booking> nextBookingsMap;
-
-        if (items.get(0).getOwner().getId().equals(ownerId)) {
-            LocalDateTime now = LocalDateTime.now();
-
-            lastBookingsMap = bookingRepository.findLastBookingsForItems(itemIds, now)
-                    .stream()
-                    .collect(Collectors.toMap(b -> b.getItem().getId(), Function.identity()));
-
-            nextBookingsMap = bookingRepository.findNextBookingsForItems(itemIds, now)
-                    .stream()
-                    .collect(Collectors.toMap(b -> b.getItem().getId(), Function.identity()));
-        } else {
-            lastBookingsMap = Collections.emptyMap();
-            nextBookingsMap = Collections.emptyMap();
-        }
+        LocalDateTime now = LocalDateTime.now();
+        Map<Integer, Booking> lastBookingsMap = bookingRepository.findLastBookingsForItems(itemIds, now)
+                .stream()
+                .collect(Collectors.toMap(b -> b.getItem().getId(), Function.identity()));
+        Map<Integer, Booking> nextBookingsMap = bookingRepository.findNextBookingsForItems(itemIds, now)
+                .stream()
+                .collect(Collectors.toMap(b -> b.getItem().getId(), Function.identity()));
 
         return items.stream()
                 .map(item -> {
