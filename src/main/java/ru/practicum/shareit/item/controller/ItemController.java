@@ -7,9 +7,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.shareit.item.dto.CreateItemRequest;
-import ru.practicum.shareit.item.dto.ItemResponse;
-import ru.practicum.shareit.item.dto.UpdateItemRequest;
+import ru.practicum.shareit.item.dto.*;
 import ru.practicum.shareit.item.service.ItemService;
 
 import java.util.List;
@@ -46,20 +44,20 @@ public class ItemController {
     }
 
     @GetMapping("/{itemId}")
-    public ItemResponse getItemById(
+    public GetItemResponse getItemById(
             @NotNull @Positive @RequestHeader(USER_ID_HEADER) Integer userId,
             @NotNull @Positive @PathVariable Integer itemId) {
         log.info("Received get request for item ID: {} by user ID: {}", itemId, userId);
-        ItemResponse response = itemService.getItemById(itemId);
+        GetItemResponse response = itemService.getItemById(itemId, userId);
         log.debug("Returning item data: {}", response);
         return response;
     }
 
     @GetMapping
-    public List<ItemResponse> getAllItemsByOwner(
+    public List<GetItemResponse> getAllItemsByOwner(
             @NotNull @Positive @RequestHeader(USER_ID_HEADER) Integer ownerId) {
         log.info("Received get all items request for owner ID: {}", ownerId);
-        List<ItemResponse> response = itemService.getAllItemsByOwner(ownerId);
+        List<GetItemResponse> response = itemService.getAllItemsByOwner(ownerId);
         log.debug("Returning all items response: {}", response);
         return response;
     }
@@ -73,6 +71,17 @@ public class ItemController {
         }
         List<ItemResponse> response = itemService.searchItems(text);
         log.debug("Returning search result response: {}", response);
+        return response;
+    }
+
+    @PostMapping("/{itemId}/comment")
+    public CommentResponse addComment(
+            @NotNull @Positive @RequestHeader(USER_ID_HEADER) Integer userId,
+            @NotNull @Positive @PathVariable Integer itemId,
+            @Valid @RequestBody CreateCommentRequest request) {
+        log.info("Received add comment request for item ID: {} by user ID: {}", itemId, userId);
+        CommentResponse response = itemService.addComment(itemId, userId, request);
+        log.debug("Returning comment response: {}", response);
         return response;
     }
 }

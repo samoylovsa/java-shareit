@@ -68,4 +68,11 @@ public class ErrorHandler {
         log.warn("Illegal Argument exception: ", e);
         return new ErrorResponse(e.getMessage());
     }
+
+    @ExceptionHandler(WrongUserAccessException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public ErrorResponse handleWrongUserAccessException(WrongUserAccessException e) {
+        log.warn("Wrong User Access exception: ", e);
+        return new ErrorResponse(e.getMessage());
+    }
 }
