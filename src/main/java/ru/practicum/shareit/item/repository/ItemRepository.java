@@ -23,4 +23,9 @@ public interface ItemRepository extends JpaRepository<Item, Integer> {
 
     @Query("SELECT i FROM Item i LEFT JOIN FETCH i.owner WHERE i.id = :itemId")
     Optional<Item> findByIdWithOwner(@Param("itemId") Integer itemId);
+
+    List<Item> findByRequestId(Integer requestId);
+
+    @Query("SELECT i FROM Item i WHERE i.request.id IN :requestIds")
+    List<Item> findByRequestIdIn(@Param("requestIds") List<Integer> requestIds);
 }
