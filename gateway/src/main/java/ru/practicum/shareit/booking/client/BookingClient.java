@@ -28,15 +28,15 @@ public class BookingClient extends BaseClient {
         );
     }
 
-    public ResponseEntity<Object> createBooking(long userId, CreateBookingRequest createBookingRequest) {
-        return post("", userId, createBookingRequest);
+    public ResponseEntity<Object> createBooking(Long bookerId, CreateBookingRequest createBookingRequest) {
+        return post("", bookerId, createBookingRequest);
     }
 
-    public ResponseEntity<Object> approveBooking(Integer ownerId, Integer bookingId, Boolean approved) {
-        return patch("/" + bookingId + "?approved=" + approved, ownerId);
+    public ResponseEntity<Object> approveBooking(Long ownerId, Long bookingId, Boolean approved) {
+        return patch("/" + bookingId + "?approved=" + approved, ownerId.longValue());
     }
 
-    public ResponseEntity<Object> getBooking(Long userId, Integer bookingId) {
+    public ResponseEntity<Object> getBooking(Long userId, Long bookingId) {
         return get("/" + bookingId, userId);
     }
 

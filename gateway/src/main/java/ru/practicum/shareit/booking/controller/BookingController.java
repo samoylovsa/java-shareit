@@ -24,7 +24,7 @@ public class BookingController {
 
     @PostMapping
     public ResponseEntity<Object> createBooking(
-            @NotNull @Positive @RequestHeader(USER_ID_HEADER) Integer bookerId,
+            @NotNull @Positive @RequestHeader(USER_ID_HEADER) Long bookerId,
             @Valid @RequestBody CreateBookingRequest request) {
         log.info("Received create booking request: {} by booker ID: {}", request, bookerId);
         ResponseEntity<Object> response = bookingClient.createBooking(bookerId, request);
@@ -34,8 +34,8 @@ public class BookingController {
 
     @PatchMapping("/{bookingId}")
     public ResponseEntity<Object> approveBooking(
-            @NotNull @Positive @RequestHeader(USER_ID_HEADER) Integer ownerId,
-            @NotNull @Positive @PathVariable Integer bookingId,
+            @NotNull @Positive @RequestHeader(USER_ID_HEADER) Long ownerId,
+            @NotNull @Positive @PathVariable Long bookingId,
             @NotNull @RequestParam Boolean approved) {
         log.info("Received approve booking request by owner ID: {} for booking ID: {}", ownerId, bookingId);
         ResponseEntity<Object> response = bookingClient.approveBooking(ownerId, bookingId, approved);
@@ -46,7 +46,7 @@ public class BookingController {
     @GetMapping("/{bookingId}")
     public ResponseEntity<Object> getBooking(
             @NotNull @Positive @RequestHeader(USER_ID_HEADER) Long userId,
-            @NotNull @Positive @PathVariable Integer bookingId) {
+            @NotNull @Positive @PathVariable Long bookingId) {
         log.info("Received get booking request by user ID: {} for booking ID: {}", userId, bookingId);
         ResponseEntity<Object> response = bookingClient.getBooking(userId, bookingId);
         log.debug("Returning booking response: {}", response);
