@@ -14,7 +14,8 @@ import ru.practicum.shareit.user.service.UserService;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(UserController.class)
 class UserControllerTest {
@@ -35,16 +36,9 @@ class UserControllerTest {
 
         when(userService.createUser(any(CreateUserRequest.class))).thenReturn(mockResponse);
 
-        String requestBody = """
-            {
-                "name": "John Doe",
-                "email": "john@example.com"
-            }
-            """;
-
         mockMvc.perform(post("/users")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(requestBody))
+                        .content("{\"name\":\"John Doe\",\"email\":\"john@example.com\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.name").value("John Doe"))
@@ -79,16 +73,9 @@ class UserControllerTest {
         when(userService.updateUser(any(Integer.class), any(UpdateUserRequest.class)))
                 .thenReturn(mockResponse);
 
-        String requestBody = """
-            {
-                "name": "Updated Name",
-                "email": "updated@example.com"
-            }
-            """;
-
         mockMvc.perform(patch("/users/1")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(requestBody))
+                        .content("{\"name\":\"Updated Name\",\"email\":\"updated@example.com\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value("Updated Name"))
                 .andExpect(jsonPath("$.email").value("updated@example.com"));
