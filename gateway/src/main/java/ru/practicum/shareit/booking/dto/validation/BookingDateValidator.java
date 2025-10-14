@@ -10,7 +10,9 @@ public class BookingDateValidator
         implements ConstraintValidator<ValidBookingDates, CreateBookingRequest> {
 
     @Override
-    public void initialize(ValidBookingDates constraintAnnotation) { }
+    public void initialize(ValidBookingDates constraintAnnotation) {
+
+    }
 
     @Override
     public boolean isValid(CreateBookingRequest request, ConstraintValidatorContext context) {
