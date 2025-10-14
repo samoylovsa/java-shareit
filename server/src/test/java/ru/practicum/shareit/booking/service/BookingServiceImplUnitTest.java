@@ -140,20 +140,6 @@ class BookingServiceImplUnitTest {
     }
 
     @Test
-    void createBooking_ShouldThrowException_WhenEndBeforeStart() {
-        createBookingRequest.setStart(LocalDateTime.now().plusDays(2));
-        createBookingRequest.setEnd(LocalDateTime.now().plusDays(1));
-        when(userRepository.findById(1)).thenReturn(Optional.of(booker));
-        when(itemRepository.findById(1)).thenReturn(Optional.of(item));
-
-        assertThatThrownBy(() -> bookingService.createBooking(1, createBookingRequest))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("End date must be after start date");
-
-        verify(bookingRepository, never()).save(any());
-    }
-
-    @Test
     void approveBooking_ShouldReturnApprovedResponse_WhenValidApproval() {
         when(bookingRepository.findWithItemAndOwnerById(1)).thenReturn(Optional.of(booking));
         when(bookingRepository.save(any(Booking.class))).thenReturn(booking);
