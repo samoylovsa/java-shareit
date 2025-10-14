@@ -39,7 +39,6 @@ public class BookingServiceImpl implements BookingService {
 
         validateBookerIsNotOwner(booker.getId(), item.getOwner().getId());
         validateItemIsAvailable(item);
-        validateBookingDates(request.getStart(), request.getEnd());
 
         Booking booking = BookingMapper.mapToBooking(request, booker, item);
         booking.setStatus(BookingStatus.WAITING);
@@ -210,15 +209,6 @@ public class BookingServiceImpl implements BookingService {
                 return bookingRepository.findByItemOwnerIdAndStatusWithRelations(ownerId, BookingStatus.REJECTED);
             default:
                 return bookingRepository.findByItemOwnerIdWithRelations(ownerId);
-        }
-    }
-
-    private void validateBookingDates(LocalDateTime start, LocalDateTime end) {
-        if (end.isBefore(start)) {
-            throw new IllegalArgumentException("End date must be after start date");
-        }
-        if (start.isEqual(end)) {
-            throw new IllegalArgumentException("Start and end dates cannot be equal");
         }
     }
 }

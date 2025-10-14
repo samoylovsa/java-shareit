@@ -5,11 +5,13 @@ import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Data;
+import ru.practicum.shareit.booking.dto.validation.ValidBookingDates;
 
 import java.time.LocalDateTime;
 
 @Data
 @Builder
+@ValidBookingDates
 public class CreateBookingRequest {
 
     @NotNull(message = "Item ID cannot be empty")
