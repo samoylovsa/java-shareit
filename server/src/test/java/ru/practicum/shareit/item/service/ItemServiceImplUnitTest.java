@@ -138,7 +138,7 @@ class ItemServiceImplUnitTest {
 
         assertThatThrownBy(() -> itemService.createItem(1, createItemRequest))
                 .isInstanceOf(NotFoundException.class)
-                .hasMessage("Запрос не найден");
+                .hasMessage("Item request with id 10 not found");
 
         verify(itemRepository, never()).save(any());
     }
