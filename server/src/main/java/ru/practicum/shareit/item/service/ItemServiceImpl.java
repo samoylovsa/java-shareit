@@ -15,8 +15,8 @@ import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.CommentRepository;
 import ru.practicum.shareit.item.repository.ItemRepository;
-import ru.practicum.shareit.request.repository.ItemRequestRepository;
 import ru.practicum.shareit.request.model.ItemRequest;
+import ru.practicum.shareit.request.repository.ItemRequestRepository;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
@@ -45,7 +45,9 @@ public class ItemServiceImpl implements ItemService {
         Item item = ItemMapper.mapToItem(owner, request);
         if (request.getRequestId() != null) {
             ItemRequest itemRequest = itemRequestRepository.findById(request.getRequestId())
-                    .orElseThrow(() -> new NotFoundException("Запрос не найден"));
+                    .orElseThrow(() -> new NotFoundException(
+                            String.format("Item request with id %d not found", request.getRequestId())
+                    ));
             item.setRequest(itemRequest);
         }
         item = itemRepository.save(item);
